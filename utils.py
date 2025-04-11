@@ -68,14 +68,14 @@ def rsaSign(data,privateKey):
     return base64.b64encode(signature).decode()
 
 
-def rsaVerify(data,publicKey,sign):
+def rsaVerify(data, publicKey, sign):
     try:
         pkcs8Key = RSA.import_key(base64.b64decode(publicKey))
         h = SHA256.new(data.encode('utf-8'))
         signer = pk.new(pkcs8Key)
-        signer.verify(h,sign.encode('utf-8'))
-        return True
-    except:
+        return signer.verify(h, base64.b64decode(sign))
+    except Exception as e:
+        print("驗證失敗：", e)
         return False
 
 def genKey():
