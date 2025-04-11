@@ -73,9 +73,10 @@ def rsaVerify(data, publicKey, sign):
         pkcs8Key = RSA.import_key(base64.b64decode(publicKey))
         h = SHA256.new(data.encode('utf-8'))
         signer = pk.new(pkcs8Key)
-        return signer.verify(h, base64.b64decode(sign))
+        decoded_sign = base64.b64decode(sign)
+        return signer.verify(h, decoded_sign)
     except Exception as e:
-        print("驗證失敗：", e)
+        print(f"[verify error] {e}")
         return False
 
 def genKey():
@@ -112,9 +113,11 @@ if __name__ == '__main__':
     print(pubKey)
 
     sign = rsaSign(baseString,privKey)
-    
+    corrupted_bytes = bytearray(base64.b64decode(sign))
+    corrupted_bytes[5] ^= 0xFF
+    broken_sign = base64.b64encode(corrupted_bytes).decode()
     print(sign)
 
-    print(rsaVerify(baseString,pubKey,sign))
-
-
+    print("Signature verify (correct):", rsaVerify(baseString, pubKey, sign))
+    print("Signature verify (wrong content):", rsaVerify(baseString + "extra", pubKey, sign))
+    print("Signature verify (wrong sign):", rsaVerify(baseString, pubKey, broken_sign))
